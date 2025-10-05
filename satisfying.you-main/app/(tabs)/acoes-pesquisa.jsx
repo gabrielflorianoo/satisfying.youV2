@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 export default function AcoesPesquisa() {
@@ -15,7 +15,7 @@ export default function AcoesPesquisa() {
   }, [title]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.actionsContainer}>
         <TouchableOpacity
           style={styles.card}
@@ -50,7 +50,7 @@ export default function AcoesPesquisa() {
           <Text style={styles.cardText}>Relatório</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -59,19 +59,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1a143a", // fundo roxo escuro
   },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
   actionsContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 80,
-    paddingHorizontal: 20,
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 16,
+    gap: 12,
   },
   card: {
-    width: 271,
-    height: 238,
+    width: "48%",
+    minHeight: 200,
+    marginBottom: 12,
     backgroundColor: "#2c1f5c",
     justifyContent: "center",
     alignItems: "center",
-    fontFamily: "Averia Libre",
+    padding: 12,
+    borderRadius: 8,
   },
   cardText: {
     marginTop: 8,
