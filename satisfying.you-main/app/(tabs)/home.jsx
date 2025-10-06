@@ -1,15 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import CardPesquisa from '../../components/cards/CardPesquisa'; // Caminho ajustado
+import { getPesquisas } from "../services/pesquisas";
+import { useEffect, useState } from "react";
 
 export default function HomeScreen() {
-    const data = [
-        { id: "1", title: "SECOMP 2023", date: "10/10/2023", imagem: "https://example.com/imagem1.jpg", icon: "laptop-outline" },
-        { id: "2", title: "UBUNTU 2022", date: "05/06/2022", imagem: "https://example.com/imagem2.jpg", icon: "people-outline" },
-        { id: "3", title: "MENINAS CPU", date: "01/04/2022", imagem: "https://example.com/imagem3.jpg", icon: "female-outline" },
-        { id: "4", title: "EVENTO X", date: "20/12/2022", imagem: "https://example.com/imagem4.jpg", icon: "calendar-outline" },
-    ];
+    const { deletedId } = useLocalSearchParams();
+    const router = useRouter();
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        setData(getPesquisas());
+    }, []);
+
+    // Se deletedId mudar, atualiza a lista removendo o item deletado
+    useEffect(() => {
+        if (deletedId) {
+            // Remove o item deletado da lista
+            setData((d) => d.filter((i) => i.id !== deletedId));
+
+            // Limpa o parâmetro deletedId para evitar loops
+            router.replace({ pathname: "/(tabs)/home" });
+        }
+    }, [deletedId]);
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
@@ -28,13 +42,20 @@ export default function HomeScreen() {
         </TouchableOpacity>
     );
 
+    const handleSearch = (text) => {
+        const filtered = getPesquisas().filter(p =>
+            p.title.toLowerCase().includes(text.toLowerCase())
+        );
+        setData(filtered);
+    }
+
     return (
         <View style={styles.container}>
 
             {/* Barra de busca */}
             <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#666" style={{ marginRight: 8 }} />
-                <TextInput placeholder="Insira o termo de busca..." style={styles.searchInput} />
+                <TextInput placeholder="Insira o termo de busca..." style={styles.searchInput} onChangeText={handleSearch} />
             </View>
 
             {/* Carrossel */}

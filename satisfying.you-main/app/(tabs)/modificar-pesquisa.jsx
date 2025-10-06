@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { removePesquisa, updatePesquisa } from "../services/pesquisas";
 import { useState } from "react";
 import {
     Alert,
@@ -7,9 +8,9 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    Platform
 } from "react-native";
-import { VacinaItem } from "../(tabs)/vacina-confirmacao";
 
 export default function NovaPesquisa() {
     const { id, title, date, icon } = useLocalSearchParams();
@@ -17,24 +18,61 @@ export default function NovaPesquisa() {
     const [data, setData] = useState(date);
     const [imagem, setImagem] = useState(icon);
     const [submitted, setSubmitted] = useState(false);
+    const router = useRouter();
 
     const handleAtualizar = () => {
         setSubmitted(true);
 
         if (nome && data) {
-            // lógica para atualizar
+            updatePesquisa(id, { title: nome, date: data, icon: imagem });
+
+            // Volta para a tela inicial
+            router.push("/(tabs)/home");
         }
     };
 
     const handleRemover = () => {
-        Alert.alert(
-            "Confirmar exclusão",
-            `Deseja realmente excluir a vacina ${nome}?`,
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", style: "destructive", onPress: () => console.log(`${nome} excluída`) }
-            ]
-        );
+        // Alert não funciona no web, então usamos confirm
+
+        // Alerta de confirmação para a versão web
+        if (Platform.OS === 'web') {
+            if (confirm("Tem certeza que deseja remover esta pesquisa?")) {
+                if (removePesquisa(id)) {
+                    router.replace({
+                        pathname: "/(tabs)/home",
+                        params: { deletedId: id }
+                    });
+                } else {
+                    alert("Erro ao remover a pesquisa.");
+                }
+            }
+        } else {
+            // Alerta de confirmação para dispositivos móveis
+            Alert.alert(
+                "Confirmar exclusão",
+                `Deseja realmente excluir ${nome}?`,
+                [
+                    { text: "Cancelar", style: "cancel" },
+                    {
+                        text: "Excluir",
+                        style: "destructive",
+                        onPress: () => {
+                            try {
+                                const success = removePesquisa(id);
+                                if (success) {
+                                    // Navega de volta para a home e passa deletedId para que a Home possa atualizar sua lista
+                                    router.push({ pathname: "(tabs)/home", params: { deletedId: id } });
+                                } else {
+                                    console.log(`Pesquisa com id ${id} não encontrada`);
+                                }
+                            } catch (err) {
+                                console.error("Erro ao remover pesquisa:", err);
+                            }
+                        }
+                    }
+                ]
+            );
+        }
     };
 
     return (
@@ -81,7 +119,7 @@ export default function NovaPesquisa() {
                 {/* Botões Atualizar e Lixeira */}
                 <View style={styles.buttonRow}>
                     <TouchableOpacity style={styles.button} onPress={handleAtualizar}>
-                        <Text style={styles.buttonText}>CADASTRAR</Text>
+                        <Text style={styles.buttonText}>MODIFICAR</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.deleteButton} onPress={handleRemover}>
