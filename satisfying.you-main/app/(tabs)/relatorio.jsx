@@ -1,77 +1,82 @@
 import { useLocalSearchParams } from "expo-router";
-import { View, Text, ScrollView, Dimensions, StyleSheet } from 'react-native';
-import { PieChart } from "react-native-chart-kit";
+import { StyleSheet, Text, View } from "react-native";
+import PieChart from "react-native-pie-chart";
 
-const screenWidth = Dimensions.get('window').width;
+export default function Relatorio() {
+    const params = useLocalSearchParams();
+    const { id = "", title = "Sem título", date = "", icon = "📊" } = params;
 
-const mockReport = [
-    {
-        question: 'O que achou do evento?',
-        answers: [
-            { name: 'Ruim', count: 10, color: '#4f8ef7' },
-            { name: 'Neutro', count: 20, color: '#4caf50' },
-            { name: 'Bom', count: 30, color: '#f44336' },
-        ],
-    }
-];
+    const rawSeries = [15, 10, 5, 20, 30]; // Dados fictícios
+    const rawLabels = ["Excelente", "Bom", "Regular", "Ruim", "Péssimo"]; // Labels fictícias
+    const colors = ["#2ecc71", "#a3d977", "#f1c40f", "#f39c12", "#e74c3c"]; // Cores para as fatias
+    const series = rawSeries.map((value, i) => ({ value, color: colors[i % colors.length], label: rawLabels[i] }));
 
-export default function AcoesPesquisa() {
+    const total = series.reduce((s, item) => s + item.value, 0);
+
     return (
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-            {mockReport.map((q, idx) => {
-                const total = q.answers.reduce((s, a) => s + a.count, 0);
-                const data = q.answers.map(a => ({
-                    name: a.name,
-                    population: a.count,
-                    color: a.color,
-                    legendFontColor: '#333',
-                    legendFontSize: 12,
-                }));
+        <View style={styles.container}>
+            <Text style={styles.header}>
+                Relatório sobre a ação: {title}
+                {id ? ` (ID: ${id})` : ""}
+                {date ? ` - Data: ${date}` : ""}
+            </Text>
 
-                const chartWidth = Math.min(screenWidth - 32, 420);
+            <View style={styles.chartWrapper}>
+                <PieChart widthAndHeight={250} series={series} />
+            </View>
 
-                return (
-                    <View key={idx} style={{ marginBottom: 28 }}>
-                        <Text style={styles.question}>{q.question}</Text>
-
-                        <View style={styles.row}>
-                            <PieChart
-                                data={data}
-                                width={chartWidth}
-                                height={220}
-                                chartConfig={{
-                                    backgroundGradientFrom: '#fff',
-                                    backgroundGradientTo: '#fff',
-                                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                                    labelColor: (opacity = 1) => `rgba(0,0,0, ${opacity})`,
-                                }}
-                                accessor="population"
-                                backgroundColor="transparent"
-                                paddingLeft="15"
-                                absolute
-                            />
-
-                            <View style={styles.legend}>
-                                {q.answers.map((a, i) => (
-                                    <View key={i} style={styles.legendItem}>
-                                        <View style={[styles.colorBox, { backgroundColor: a.color }]} />
-                                        <Text style={styles.legendText}>{`${a.name} — ${a.count}`}</Text>
-                                    </View>
-                                ))}
-                            </View>
+            {/* Legenda */}
+            <View style={styles.legendContainer}>
+                {series.map((slice, i) => {
+                    const percent = ((slice.value / total) * 100).toFixed(1);
+                    return (
+                        <View key={i} style={styles.legendItem}>
+                            <View style={[styles.swatch, { backgroundColor: slice.color }]} />
+                            <Text style={styles.legendText}>{`${slice.label}: ${slice.value} — ${percent}%`}</Text>
                         </View>
-                    </View>
-                );
-            })}
-        </ScrollView>
+                    );
+                })}
+            </View>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    question: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
-    row: { flexDirection: 'row', alignItems: 'center' },
-    legend: { marginLeft: 12, flex: 1 },
-    legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    colorBox: { width: 14, height: 14, marginRight: 8, borderRadius: 2 },
-    legendText: { fontSize: 13, color: '#222' },
+    container: {
+        flex: 1,
+        backgroundColor: "#2d2174",
+        padding: 20,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    header: {
+        color: "#fff",
+        fontSize: 16,
+        textAlign: "center",
+        marginBottom: 20,
+    },
+    chartWrapper: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    legendContainer: {
+        marginTop: 20,
+        width: "100%",
+        paddingHorizontal: 10,
+    },
+    legendItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    swatch: {
+        width: 18,
+        height: 18,
+        borderRadius: 4,
+        marginRight: 10,
+    },
+    legendText: {
+        color: "#fff",
+        fontSize: 14,
+    },
 });

@@ -36,6 +36,27 @@ export default function NovaPesquisa() {
             ]
         );
     };
+    const handleRemover = () => {
+        // Aqui você pode colocar a lógica para remover do backend ou state
+        Alert.alert(
+            "Remover Pesquisa",
+            "Tem certeza que deseja remover esta pesquisa?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Remover",
+                    style: "destructive",
+                    onPress: () => {
+                        console.log("Item removido:", { id, nome, data, imagem });
+                        // Limpar campos como exemplo
+                        setNome("");
+                        setData("");
+                        setImagem("");
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <View style={styles.container}>
